@@ -1,12 +1,16 @@
 import axios from 'axios';
 
-// Create axios instance with base configuration
+// Create axios instance with browser-compatible configuration
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000',
-  timeout: 20000,
+  timeout: 8000, // Reduced timeout for faster feedback
   headers: {
     'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'Accept-Encoding': 'gzip, deflate', // Enable compression
   },
+  // Remove adapter specification to let axios auto-detect (browser vs node)
+  withCredentials: false, // Enable if you need credentials
 });
 
 // Request interceptor

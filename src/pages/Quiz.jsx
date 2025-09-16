@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiEndpoints } from '../services/api';
+import { useTheme } from '../contexts/ThemeContext';
 import Button from '../components/Button';
 import Card from '../components/Card';
 import Loader from '../components/Loader';
+import FastLoader from '../components/FastLoader';
 import AuthModal from '../components/AuthModal';
 
 const Quiz = () => {
@@ -20,6 +22,7 @@ const Quiz = () => {
   const [stream, setStream] = useState(''); // For Class 12
   const [pendingQuizType, setPendingQuizType] = useState(null); // store selection when auth needed
   const navigate = useNavigate();
+  const { isDarkMode } = useTheme();
 
   useEffect(() => {
     // Check if user is authenticated
@@ -27,27 +30,66 @@ const Quiz = () => {
     setIsAuthenticated(!!token);
   }, []);
 
-  const fetchQuiz = async (selectedQuizType) => {
-    if (!isAuthenticated) {
-      setPendingQuizType(selectedQuizType);
-      setShowAuthModal(true);
-      return;
-    }
+  const fetchQuiz = useCallback(async (selectedQuizType) => {
+    // Note: Quiz questions can be fetched without authentication
+    // Authentication is only required for quiz submission
 
+    const startTime = Date.now();
     try {
       setLoading(true);
       setError('');
+      console.log(`[Quiz] Starting fetch for ${selectedQuizType}...`);
+      
+      // Add timeout to prevent hanging
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      
       const response = await apiEndpoints.getQuizQuestions(selectedQuizType);
+      clearTimeout(timeoutId);
+      
+      const fetchTime = Date.now() - startTime;
+      console.log(`[Quiz] Raw API Response:`, response);
+      console.log(`[Quiz] Response Status: ${response.status}`);
+      console.log(`[Quiz] Response Data:`, response.data);
+      
+      // Check if response has the expected structure
+      if (!response.data) {
+        throw new Error('No data received from server');
+      }
+      
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Server returned unsuccessful response');
+      }
+      
+      if (!response.data.questions || response.data.questions.length === 0) {
+        throw new Error(`No questions available for ${selectedQuizType} quiz`);
+      }
+      
+      console.log(`[Quiz] Successfully fetched ${response.data.count} questions in ${fetchTime}ms`);
+      
       setQuestions(response.data.questions);
       setAnswers(new Array(response.data.questions.length).fill(''));
       setQuizType(selectedQuizType);
+      
     } catch (err) {
-      setError('Failed to load quiz questions. Please try again.');
-      console.error('Quiz fetch error:', err);
+      const fetchTime = Date.now() - startTime;
+      console.error(`[Quiz] Fetch failed after ${fetchTime}ms:`, err);
+      
+      if (err.name === 'AbortError') {
+        setError('Quiz loading timed out. Please check your connection and try again.');
+      } else if (err.response?.status === 404) {
+        setError(`No ${selectedQuizType} quiz found. Please try another quiz type.`);
+      } else if (err.response?.status === 401) {
+        setError('Authentication expired. Please refresh and login again.');
+        localStorage.removeItem('token');
+        setIsAuthenticated(false);
+      } else {
+        setError(`Failed to load quiz questions (${fetchTime}ms). Please check your connection and try again.`);
+      }
     } finally {
       setLoading(false);
     }
-  };
+  }, []); // Remove isAuthenticated dependency since we don't check it anymore
 
   const handleAnswerSelect = (answer) => {
     const newAnswers = [...answers];
@@ -68,6 +110,13 @@ const Quiz = () => {
   };
 
   const handleSubmit = async () => {
+    // Check authentication before submission
+    if (!isAuthenticated) {
+      setError('Please login to submit your quiz answers');
+      setShowAuthModal(true);
+      return;
+    }
+
     try {
       setSubmitting(true);
       setError('');
@@ -144,7 +193,13 @@ const Quiz = () => {
   };
 
   if (loading) {
-    return <Loader fullScreen />;
+    return (
+      <FastLoader 
+        fullScreen 
+        message={`Loading ${quizType ? (quizType === 'class10' ? 'Class 10' : 'Class 12') : ''} quiz questions...`}
+        showProgress={false}
+      />
+    );
   }
 
   if (error) {
@@ -417,9 +472,9 @@ const Quiz = () => {
             {currentQ.options.map((option, index) => (
               <label
                 key={index}
-                className={`flex items-center p-4 border rounded-lg cursor-pointer transition-colors ${
+                className={`flex items-center p-4 border rounded-lg cursor-pointer transition-all duration-200 ${
                   answers[currentQuestion] === option
-                    ? 'border-primary-500 bg-primary-50 dark:bg-white/20'
+                    ? 'border-gray-200 dark:border-gray-600'
                     : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
                 }`}
               >
@@ -431,13 +486,21 @@ const Quiz = () => {
                   onChange={() => handleAnswerSelect(option)}
                   className="sr-only"
                 />
-                <div className={`w-4 h-4 rounded-full border-2 mr-3 ${
+                <div className={`w-4 h-4 rounded-full border-2 mr-3 flex items-center justify-center ${
                   answers[currentQuestion] === option
-                    ? 'border-primary-600 bg-primary-600'
-                    : 'border-gray-300'
+                    ? isDarkMode 
+                      ? 'border-white bg-gray-800'     // Dark mode: white border, dark background
+                      : 'border-black bg-black'        // Light mode: black border and background
+                    : isDarkMode
+                      ? 'border-gray-500 bg-gray-800'  // Dark mode unselected
+                      : 'border-gray-300 bg-white'     // Light mode unselected
                 }`}>
                   {answers[currentQuestion] === option && (
-                    <div className="w-full h-full bg-white rounded-full scale-50"></div>
+                    <div className={`w-2 h-2 rounded-full ${
+                      isDarkMode 
+                        ? 'bg-primary-600'  // Dark mode: blue dot
+                        : 'bg-white'        // Light mode: white dot
+                    }`}></div>
                   )}
                 </div>
                 <span className="text-gray-800 dark:text-white">{option}</span>
