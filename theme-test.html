@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theme Test</title>
+    <link rel="stylesheet" href="./src/theme.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            margin: 0;
+        }
+        
+        .test-button {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px;
+        }
+        
+        .test-card {
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <h1>Theme Toggle Test</h1>
+    
+    <button id="toggleBtn" class="test-button">
+        🌙 Switch to Dark Mode
+    </button>
+    
+    <div class="bg-white test-card" style="border: 1px solid #000;">
+        <h2 class="text-gray-900">Test Card</h2>
+        <p class="text-gray-600">This is a test paragraph to see if the theme switching works properly.</p>
+        <button class="bg-gray-100 text-gray-700" style="padding: 8px 16px; border: 1px solid #000; border-radius: 4px;">
+            Sample Button
+        </button>
+    </div>
+    
+    <div class="bg-gray-50 test-card" style="border: 1px solid #000;">
+        <h3 class="text-gray-800">Another Section</h3>
+        <p class="text-gray-500">More test content here.</p>
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+            <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
+        </svg>
+        Test icon
+    </div>
+    
+    <script>
+        let isDarkMode = false;
+        const toggleBtn = document.getElementById('toggleBtn');
+        
+        toggleBtn.addEventListener('click', () => {
+            isDarkMode = !isDarkMode;
+            
+            if (isDarkMode) {
+                document.documentElement.classList.add('dark-theme');
+                toggleBtn.textContent = '☀️ Switch to Light Mode';
+                console.log('Switched to dark mode');
+            } else {
+                document.documentElement.classList.remove('dark-theme');
+                toggleBtn.textContent = '🌙 Switch to Dark Mode';
+                console.log('Switched to light mode');
+            }
+            
+            console.log('Current classes:', document.documentElement.classList.toString());
+        });
+        
+        console.log('Test page loaded. Click the button to toggle themes.');
+    </script>
+</body>
+</html>

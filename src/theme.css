@@ -1,0 +1,309 @@
+/* CSS Variables Theme System */
+:root {
+  /* Light mode colors (default) - Clean white backgrounds with black text */
+  --bg-primary: #ffffff;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #ffffff;
+  --text-primary: #000000;
+  --text-secondary: #374151;
+  --border-color: #000000;
+  --nav-bg: #ffffff;
+  --card-bg: #ffffff;
+  --button-bg: #ffffff;
+  --button-text: #000000;
+  --button-hover-bg: #f8f9fa;
+  --button-border: #000000;
+  --icon-color: #000000;
+}
+
+/* Dark mode colors */
+.dark-theme {
+  --bg-primary: #111827;
+  --bg-secondary: #1f2937;
+  --bg-tertiary: #374151;
+  --text-primary: #ffffff;
+  --text-secondary: #d1d5db;
+  --border-color: #4b5563;
+  --nav-bg: #1f2937;
+  --card-bg: #1f2937;
+  --button-bg: #374151;
+  --button-text: #ffffff;
+  --button-hover-bg: #4b5563;
+  --button-border: #6b7280;
+  --icon-color: #ffffff;
+}
+
+/* Apply variables to elements */
+body {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  min-height: 100vh !important;
+}
+
+#root {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+  min-height: 100vh !important;
+}
+
+/* Main content areas */
+main {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+  min-height: calc(100vh - 64px) !important;
+}
+
+/* Page containers */
+.min-h-screen {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Navigation */
+nav {
+  background-color: var(--nav-bg) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+nav a,
+nav span,
+nav h1 {
+  color: var(--text-primary) !important;
+}
+
+nav a:hover {
+  color: var(--text-secondary) !important;
+}
+
+/* All headings */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-primary) !important;
+}
+
+/* All paragraphs and text */
+p, span, div, li, label, input, textarea, select {
+  color: var(--text-primary) !important;
+}
+
+/* Specific text elements that need black color in light mode */
+.text-gray-400,
+.text-gray-500,
+.text-gray-600,
+.text-gray-700,
+.text-gray-800,
+.text-gray-900,
+.text-primary-700 {
+  color: var(--text-primary) !important;
+}
+
+/* Cards and containers */
+.bg-white {
+  background-color: var(--card-bg) !important;
+  color: var(--text-primary) !important;
+}
+
+.bg-gray-50 {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+.bg-gray-100 {
+  background-color: var(--bg-tertiary) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Text colors - Override all gray text colors */
+.text-gray-400,
+.text-gray-500,
+.text-gray-600,
+.text-gray-700,
+.text-gray-800,
+.text-gray-900 {
+  color: var(--text-primary) !important;
+}
+
+/* Secondary text */
+.text-gray-500 {
+  color: var(--text-secondary) !important;
+}
+
+/* Ensure primary brand colors stay visible */
+.text-primary-700 {
+  color: var(--text-primary) !important;
+}
+
+/* All Buttons - Ensure every button has black border in light mode */
+button {
+  border: 2px solid var(--button-border) !important;
+  background-color: var(--button-bg) !important;
+  color: var(--button-text) !important;
+  border-radius: 6px !important;
+  transition: all 0.2s ease !important;
+}
+
+/* Button hover states */
+button:hover {
+  background-color: var(--button-hover-bg) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Specific button overrides for red buttons */
+button.bg-red-600,
+button.bg-red-500,
+.bg-red-600,
+.bg-red-500 {
+  background-color: #dc2626 !important;
+  color: #ffffff !important;
+  border: 2px solid #dc2626 !important;
+}
+
+button.bg-red-600:hover,
+button.bg-red-500:hover,
+.bg-red-600:hover,
+.bg-red-500:hover {
+  background-color: #b91c1c !important;
+  border-color: #b91c1c !important;
+}
+
+/* Borders */
+.border,
+.border-gray-200,
+.border-gray-300,
+.border-white {
+  border-color: var(--border-color) !important;
+}
+
+/* SVG Icons */
+svg {
+  color: var(--icon-color) !important;
+  fill: var(--icon-color) !important;
+}
+
+svg path {
+  fill: var(--icon-color) !important;
+  stroke: var(--icon-color) !important;
+}
+
+/* Links */
+a {
+  color: var(--text-primary) !important;
+}
+
+a:hover {
+  color: var(--text-secondary) !important;
+}
+
+/* Dark theme gradient overrides */
+.dark-theme .bg-gradient-to-br,
+.dark-theme .bg-gradient-to-r,
+.dark-theme .bg-gradient-to-l,
+.dark-theme .bg-gradient-to-t,
+.dark-theme .bg-gradient-to-b {
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%) !important;
+}
+
+.dark-theme .from-primary-50,
+.dark-theme .to-accent-50 {
+  background: var(--bg-primary) !important;
+  background-image: none !important;
+}
+
+.dark-theme .from-gray-900,
+.dark-theme .to-gray-800 {
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%) !important;
+}
+
+/* Shadows for dark mode */
+.dark-theme .shadow-md,
+.dark-theme .shadow-lg {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Card and section styling - All white backgrounds in light mode */
+.bg-white {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+.bg-gray-50 {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+.bg-gray-100 {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+.bg-gray-200 {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Override gradients in light mode */
+.bg-gradient-to-br,
+.bg-gradient-to-r,
+.bg-gradient-to-l,
+.bg-gradient-to-t,
+.bg-gradient-to-b {
+  background: var(--bg-primary) !important;
+  background-image: none !important;
+}
+
+/* Override primary and accent color backgrounds in light mode */
+.from-primary-50,
+.to-accent-50,
+.from-gray-900,
+.to-gray-800 {
+  background: var(--bg-primary) !important;
+  background-image: none !important;
+}
+
+/* Feature cards styling */
+.feature-card {
+  background-color: var(--card-bg) !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 12px !important;
+  padding: 2rem !important;
+  text-align: center !important;
+  transition: all 0.3s ease !important;
+}
+
+.feature-card:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Navigation styling */
+nav {
+  background-color: var(--nav-bg) !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Universal background overrides for light mode */
+[class*="bg-gradient"],
+[class*="from-"],
+[class*="to-"],
+.min-h-screen {
+  background: var(--bg-primary) !important;
+  background-image: none !important;
+  color: var(--text-primary) !important;
+}
+
+/* Dark theme universal overrides */
+.dark-theme [class*="bg-gradient"],
+.dark-theme [class*="from-"],
+.dark-theme [class*="to-"],
+.dark-theme .min-h-screen {
+  background: var(--bg-primary) !important;
+  background-image: none !important;
+  color: var(--text-primary) !important;
+}
+
+/* Ensure smooth transitions */
+* {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}

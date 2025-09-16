@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dark Mode Test</title>
+    <link rel="stylesheet" href="./src/output.css">
+    <link rel="stylesheet" href="./src/dark-mode.css">
+    <style>
+        body {
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        .test-card {
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <h1 class="text-2xl font-bold text-gray-900 mb-4">Dark Mode Test</h1>
+    
+    <button id="toggle-btn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+        Toggle Dark Mode
+    </button>
+    
+    <div class="test-card bg-white">
+        <h2 class="text-lg font-semibold text-gray-800">Test Card</h2>
+        <p class="text-gray-600">This is a test paragraph to check dark mode styling.</p>
+        <button class="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 mt-2">
+            Red Button
+        </button>
+    </div>
+    
+    <div class="bg-gray-100 p-4 rounded">
+        <p class="text-gray-700">Gray background content</p>
+    </div>
+    
+    <script>
+        const toggleBtn = document.getElementById('toggle-btn');
+        const html = document.documentElement;
+        
+        toggleBtn.addEventListener('click', () => {
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                console.log('Removed dark class');
+            } else {
+                html.classList.add('dark');
+                console.log('Added dark class');
+            }
+            console.log('Current classes:', html.classList.toString());
+        });
+        
+        // Log initial state
+        console.log('Initial classes:', html.classList.toString());
+    </script>
+</body>
+</html>
