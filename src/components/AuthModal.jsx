@@ -32,7 +32,25 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
           email: formData.email,
           password: formData.password
         });
-        localStorage.setItem('token', response.data.token);
+
+        const { accessToken, refreshToken, user } = response.data.tokens
+          ? { 
+              accessToken: response.data.tokens.accessToken, 
+              refreshToken: response.data.tokens.refreshToken, 
+              user: response.data.user 
+            }
+          : { accessToken: '', refreshToken: '', user: null };
+
+        // ✅ Store both tokens
+        localStorage.setItem('accessToken', accessToken);
+        localStorage.setItem('refreshToken', refreshToken);
+
+        // Optionally store user info
+        if (user) {
+          localStorage.setItem('userData', JSON.stringify(user));
+        }
+
+        console.log('User logged in:', response.data);
         onAuthSuccess();
         onClose();
       } else {

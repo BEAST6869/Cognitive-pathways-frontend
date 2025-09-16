@@ -15,50 +15,30 @@ const Profile = () => {
     password: '',
     confirmPassword: ''
   });
-  
-  // Mock user data and quiz results
-  const mockQuizResults = {
-    recommendedStream: 'Science',
-    confidence: 85,
-    completedOn: '2024-01-15',
-    topCourses: [
-      'Computer Science Engineering',
-      'Biotechnology',
-      'Mathematics'
-    ]
-  };
 
   useEffect(() => {
     checkAuthStatus();
   }, []);
 
   const checkAuthStatus = () => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      // Get stored user data
+    const accessToken = localStorage.getItem('accessToken');
+    if (accessToken) {
       const storedUserData = localStorage.getItem('userData');
       if (storedUserData) {
         const userData = JSON.parse(storedUserData);
         setUser({
           ...userData,
-          quizResults: mockQuizResults
-        });
-      } else {
-        // Fallback for existing sessions
-        setUser({
-          id: 1,
-          name: 'User',
-          email: 'user@example.com',
-          joinedOn: '2024-01-10',
-          quizResults: mockQuizResults
+          quizResults: userData.quizResults || null
         });
       }
     }
   };
 
   const handleAuthError = () => {
-    // Clear invalid token and redirect to login
-    localStorage.removeItem('token');
+    // Clear invalid tokens and force re-login
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('userData');
     setUser(null);
   };
 
@@ -77,82 +57,51 @@ const Profile = () => {
 
     try {
       if (isLogin) {
-        // Mock login - get user data by email
-        setTimeout(() => {
-          const storedUserData = localStorage.getItem('userData');
-          let userData;
-          
-          if (storedUserData) {
-            const allUserData = JSON.parse(storedUserData);
-            // For demo, we'll use the stored user data if email matches (case-insensitive)
-            if (allUserData.email.toLowerCase() === formData.email.toLowerCase()) {
-              userData = allUserData;
-            } else {
-              // Use the email name part as username
-              const userName = formData.email.split('@')[0];
-              userData = {
-                id: 1,
-                name: userName,
-                email: formData.email,
-                joinedOn: new Date().toISOString().split('T')[0],
-              };
-            }
-          } else {
-            // Use the email name part as username if no stored data
-            const userName = formData.email.split('@')[0];
-            userData = {
-              id: 1,
-              name: userName,
-              email: formData.email,
-              joinedOn: new Date().toISOString().split('T')[0],
-            };
-          }
-          
-          localStorage.setItem('token', 'mock-jwt-token');
-          localStorage.setItem('userData', JSON.stringify(userData));
-          setUser({
-            ...userData,
-            quizResults: mockQuizResults
-          });
-          setLoading(false);
-        }, 1000);
+        const response = await apiEndpoints.login({
+          email: formData.email,
+          password: formData.password
+        });
+
+        const user = response.data.user;
+        const { accessToken, refreshToken } = response.data.tokens;
+
+        // Save tokens + user in localStorage
+        localStorage.setItem('accessToken', accessToken);
+        localStorage.setItem('refreshToken', refreshToken);
+        localStorage.setItem('userData', JSON.stringify(user));
+
+        setUser({
+          ...user,
+          quizResults: user.quizResults || null
+        });
       } else {
-        // Validation for signup
+        // Signup
         if (formData.password !== formData.confirmPassword) {
           setError('Passwords do not match');
           setLoading(false);
           return;
         }
 
-        // Mock signup - store user data
-        setTimeout(() => {
-          const userData = {
-            id: 1,
-            name: formData.name,
-            email: formData.email,
-            joinedOn: new Date().toISOString().split('T')[0],
-          };
-          
-          // Store user data for future logins
-          localStorage.setItem('userData', JSON.stringify(userData));
-          localStorage.setItem('token', 'mock-jwt-token');
-          
-          setUser({
-            ...userData,
-            quizResults: null
-          });
-          setLoading(false);
-        }, 1000);
+        await apiEndpoints.register({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password
+        });
+
+        alert('Registration successful! Please login.');
+        setIsLogin(true);
       }
     } catch (err) {
-      setError('Authentication failed. Please try again.');
+      setError(err.response?.data?.message || 'Authentication failed');
       console.error('Auth error:', err);
+    } finally {
       setLoading(false);
     }
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
     localStorage.removeItem('userData');
     setUser(null);
     setFormData({
@@ -178,10 +127,7 @@ const Profile = () => {
                   Member since {new Date(user.joinedOn).toLocaleDateString()}
                 </p>
               </div>
-              <Button
-                variant="outline"
-                onClick={handleLogout}
-              >
+              <Button variant="outline" onClick={handleLogout}>
                 Logout
               </Button>
             </div>
@@ -198,13 +144,15 @@ const Profile = () => {
                   Recommended Stream: {user.quizResults.recommendedStream}
                 </h3>
                 <p className="text-sm text-white opacity-95">
-                  Confidence Score: {user.quizResults.confidence}% • 
-                  Completed on {new Date(user.quizResults.completedOn).toLocaleDateString()}
+                  Confidence Score: {user.quizResults.confidence}% • Completed on{' '}
+                  {new Date(user.quizResults.completedOn).toLocaleDateString()}
                 </p>
               </div>
-              
+
               <div>
-                <h4 className="font-medium text-gray-900 dark:text-white mb-2">Top Course Recommendations:</h4>
+                <h4 className="font-medium text-gray-900 dark:text-white mb-2">
+                  Top Course Recommendations:
+                </h4>
                 <div className="flex flex-wrap gap-2 mb-4">
                   {user.quizResults.topCourses.map((course, index) => (
                     <span
@@ -215,12 +163,20 @@ const Profile = () => {
                     </span>
                   ))}
                 </div>
-                
+
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={() => window.open('/quiz', '_self')}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => window.open('/quiz', '_self')}
+                  >
                     Retake Quiz
                   </Button>
-                  <Button variant="outline" size="sm" onClick={() => window.open('/courses', '_self')}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => window.open('/courses', '_self')}
+                  >
                     Explore Courses
                   </Button>
                 </div>
@@ -231,7 +187,11 @@ const Profile = () => {
               <div className="text-center py-8">
                 <div className="w-16 h-16 mx-auto mb-4 text-gray-400">
                   <svg fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                    <path
+                      fillRule="evenodd"
+                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                 </div>
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
@@ -284,10 +244,9 @@ const Profile = () => {
             {isLogin ? 'Welcome Back' : 'Join Us'}
           </h1>
           <p className="text-gray-600 dark:text-white mt-2">
-            {isLogin 
-              ? 'Sign in to access your personalized recommendations' 
-              : 'Create an account to save your quiz results and preferences'
-            }
+            {isLogin
+              ? 'Sign in to access your personalized recommendations'
+              : 'Create an account to save your quiz results and preferences'}
           </p>
         </div>
 
@@ -301,7 +260,10 @@ const Profile = () => {
 
             {!isLogin && (
               <div className="mb-4">
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-white mb-1">
+                <label
+                  htmlFor="name"
+                  className="block text-sm font-medium text-gray-700 dark:text-white mb-1"
+                >
                   Full Name
                 </label>
                 <input
@@ -317,7 +279,10 @@ const Profile = () => {
             )}
 
             <div className="mb-4">
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-white mb-1">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700 dark:text-white mb-1"
+              >
                 Email Address
               </label>
               <input
@@ -332,7 +297,10 @@ const Profile = () => {
             </div>
 
             <div className="mb-4">
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-white mb-1">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700 dark:text-white mb-1"
+              >
                 Password
               </label>
               <input
@@ -348,7 +316,10 @@ const Profile = () => {
 
             {!isLogin && (
               <div className="mb-6">
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-white mb-1">
+                <label
+                  htmlFor="confirmPassword"
+                  className="block text-sm font-medium text-gray-700 dark:text-white mb-1"
+                >
                   Confirm Password
                 </label>
                 <input
@@ -375,8 +346,10 @@ const Profile = () => {
                   <Loader size="sm" className="mr-2" />
                   {isLogin ? 'Signing in...' : 'Creating account...'}
                 </>
+              ) : isLogin ? (
+                'Sign In'
               ) : (
-                isLogin ? 'Sign In' : 'Create Account'
+                'Create Account'
               )}
             </Button>
 
@@ -386,10 +359,9 @@ const Profile = () => {
                 onClick={() => setIsLogin(!isLogin)}
                 className="text-primary-600 dark:text-white hover:text-primary-700 dark:hover:text-gray-200 font-medium"
               >
-                {isLogin 
-                  ? "Don't have an account? Sign up" 
-                  : "Already have an account? Sign in"
-                }
+                {isLogin
+                  ? "Don't have an account? Sign up"
+                  : 'Already have an account? Sign in'}
               </button>
             </div>
           </form>
